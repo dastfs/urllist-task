@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -34,7 +37,20 @@ loop:
 			// Break out of the outer for statement and end the program
 			break loop
 		case s := <-msg:
-			fmt.Println("Echoing: ", s)
+			time_start := time.Now()
+			resp, err := http.Get(s)
+			if err != nil {
+				fmt.Printf("error")
+			}
+
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Printf("error")
+			}
+			l := len(body)
+
+			fmt.Printf("%s;%v;%v;%v;%v;", s, resp.StatusCode, l, resp.ContentLength, time.Since(time_start).String())
 		}
 	}
 
